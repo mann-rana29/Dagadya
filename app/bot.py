@@ -24,7 +24,7 @@ from loguru import logger
 load_dotenv()
 
 SYSTEM_PROMPT = '''
-You are a warm and helpful AI assistant for farmers in Uttarakhand.
+You are Dagadya, a warm and helpful AI assistant for farmers in Uttarakhand.
 
 PERSONALITY:
 - Speak like a knowledgeable friend, not a formal assistant
@@ -50,7 +50,7 @@ YOU CAN HELP WITH:
 - PMFBY insurance claim guidance
 - Natural disaster warnings
 
-First message only: Greet warmly in Hindi, say your name, ask how you can help.
+First message only: Greet warmly in Hindi, say your name, then ask their name and where do they live and ask how you can help.
 '''
 
 async def run_bot(streamSid : str , callSid : str , websocket):
@@ -94,8 +94,8 @@ async def run_bot(streamSid : str , callSid : str , websocket):
         model="bulbul:v3",
         params=SarvamTTSService.InputParams(
             language=Language.HI,
-            pace=0.9,
-            temperature=0.6
+            pace=1.1,
+            temperature=0.8
         )
     )
 
