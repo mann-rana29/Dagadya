@@ -14,7 +14,7 @@ from pipecat.pipeline.task import PipelineParams, PipelineTask
 from pipecat.processors.aggregators.llm_context import LLMContext
 from pipecat.processors.aggregators.llm_response_universal import LLMContextAggregatorPair
 
-
+from pipecat.transports.network.fastapi_websocket import FastAPIWebsocketParams, FastAPIWebsocketTransport
 
 from dotenv import load_dotenv
 from loguru import logger
@@ -50,15 +50,13 @@ async def run_bot(streamSid : str , callSid : str , websocket):
         account_sid= os.getenv("TWILIO_ACCOUNT_SID")
     )
 
-    transport = WebsocketServerTransport(
-        params=WebsocketServerParams(
-            websocket = websocket,
+    transport = FastAPIWebsocketTransport(
+        websocket= websocket,
+        params= FastAPIWebsocketParams(
             audio_in_enabled=True,
             audio_out_enabled=True,
             add_wav_header=False,
-            vad_enabled=True,
-            vad_analyzer= SileroVADAnalyzer(),
-            vad_audio_passthrough=True,
+            vad_analyzer=SileroVADAnalyzer(),
             serializer=serializer
         )
     )
@@ -76,9 +74,12 @@ async def run_bot(streamSid : str , callSid : str , websocket):
 
     tts = SarvamTTSService(
         api_key=os.getenv("SARVAM_API_KEY"),
-        model="bulbul:v3",
-        speaker="anushka",
-        target_language_code="hi-IN"
+        settings=SarvamTTSService.Settings(
+            model="bulbul:v3",
+            speaker="anushka",
+            target_language_code="hi-IN"
+        )
+        
     )
 
     messages=[
