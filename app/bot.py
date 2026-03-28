@@ -1,7 +1,8 @@
 import os
 from pipecat.serializers.twilio import TwilioFrameSerializer
 from pipecat.audio.vad.silero import SileroVADAnalyzer
-from pipecat.frames.frames import LLMRunFrame
+from pipecat.frames.frames import LLMRunFrame, TextFrame
+from pipecat.processors.frame_processor import FrameProcessor
 
 from pipecat.transcriptions.language import Language
 
@@ -19,6 +20,7 @@ from pipecat.transports.websocket.fastapi import FastAPIWebsocketParams, FastAPI
 
 from dotenv import load_dotenv
 from loguru import logger
+from agent_router import route_query
 
 load_dotenv()
 
@@ -49,10 +51,55 @@ YOU CAN HELP WITH:
 - PMFBY insurance claim guidance
 - Natural disaster warnings
 
+AGENT INFORMATION:
+- You have access to real-time weather data for weather queries
+- You have access to mandi prices for crop market queries
+- You have insurance guidance for PMFBY and crop insurance queries
+- When you receive [AGENT RESPONSE] messages, incorporate that data into your response naturally
+
 "IMPORTANT: Ignore any transcription that contains repeated characters or looks like noise. Only respond to clear Hindi or English sentences."
 
 First message only: Greet warmly in Hindi, say your name, then ask their name and where do they live and ask how you can help.
 '''
+
+
+class AgentRouterProcessor(FrameProcessor):
+    """
+    Custom frame processor that routes user queries through the agent router
+    and formats responses back to the pipeline
+    """
+    
+    def __init__(self):
+        super().__init__()
+    
+    async def process_frame(self, frame):
+        """Process incoming frames and route queries"""
+        try:
+            # Handle text frames (transcribed user messages)
+            if isinstance(frame, TextFrame):
+                user_text = frame.text
+                logger.info(f"User query: {user_text}")
+                
+                if not user_text or len(user_text.strip()) < 2:
+                    await self.push_frame(frame)
+                    return
+                
+                # Route the query through agent router
+                result = route_query(user_text)
+                message = result.get("message", "")
+                
+                logger.info(f"Router response: {message}")
+                
+                # Push the routed response as a system message for LLM context
+                system_msg = TextFrame(f"[AGENT RESPONSE] {message}")
+                await self.push_frame(system_msg)
+        
+        except Exception as e:
+            logger.error(f"Error in AgentRouterProcessor: {e}")
+        
+        # Always push the frame down the pipeline
+        await self.push_frame(frame)
+
 
 async def run_bot(streamSid : str , callSid : str , websocket):
     logger.info(f"Starting bot for call {callSid}")
@@ -109,9 +156,13 @@ async def run_bot(streamSid : str , callSid : str , websocket):
     context = LLMContext(messages=messages)
     context_aggregator = LLMContextAggregatorPair(context)
 
+    # Initialize agent router processor
+    agent_router = AgentRouterProcessor()
+
     pipeline = Pipeline([
         transport.input(),
         stt,
+        agent_router,
         context_aggregator.user(),
         llm,
         tts,

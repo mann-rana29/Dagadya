@@ -9,7 +9,7 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-MODEL = os.getenv("MODEL_NAME", "llama3-70b-8192")
+MODEL = os.getenv("MODEL_NAME", "llama-3.3-70b-versatile")
 
 def rule_based_classifier(text):
     original_text = text

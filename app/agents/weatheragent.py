@@ -61,7 +61,7 @@ Instructions:
 - No technical jargon
 - {lang_instruction}
 """
-    MODELS = ["llama3-70b-8192", "mixtral-8x7b-32768"]
+    MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
 
     advice = None
 
