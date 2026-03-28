@@ -4,7 +4,6 @@ import requests
 def get_soil_data(lat: float, lon: float) -> dict:
     """
     Fetch soil data from SoilGrids API
-    No API key required
     """
 
     url = "https://rest.isric.org/soilgrids/v2.0/properties/query"
