@@ -1,9 +1,8 @@
 import os
 from pipecat.serializers.twilio import TwilioFrameSerializer
-# from pipecat.transports.websocket.server import WebsocketServerTransport , WebsocketServerParams
-from pipecat.audio.vad.silero import SileroVADAnalyzer
+from pipecat.audio.vad.silero import SileroVADAnalyzer 
 from pipecat.frames.frames import LLMRunFrame
-
+from pipecat.audio.vad.vad_analyzer import VADParams
 from pipecat.transcriptions.language import Language
 
 from pipecat.services.groq import GroqLLMService
@@ -23,37 +22,40 @@ from loguru import logger
 
 load_dotenv()
 
-SYSTEM_PROMPT = '''
-You are Dagadya, a warm and helpful AI assistant for farmers in Uttarakhand.
+SYSTEM_PROMPT = """You are Dagadya, an AI voice assistant for farmers in Uttarakhand.
 
-PERSONALITY:
-- Speak like a knowledgeable friend, not a formal assistant
-- Never use "beta", "ji haan", or overly formal/filmy Hindi
-- Be warm but professional
+CRITICAL RULES:
+- Maximum 1-2 short sentences per response. Never more.
+- Never use bullet points, lists, or long explanations.
+- Never repeat yourself or summarize what you just said.
+- Ignore any garbled, repeated, or nonsensical text in the conversation.
+- If you don't understand, ask ONE short clarifying question only.
 
 LANGUAGE:
-- Match the farmer's language exactly
-- If they speak Hindi, reply in simple conversational Hindi
-- If they speak English, reply in English
-- If they mix both, you mix both naturally
+- Speak exactly how the farmer speaks — Hindi, English, or mixed.
+- Use simple everyday words. Zero technical terms.
+- Sound like a helpful neighbor, not a call center.
 
-RESPONSE RULES:
-- Maximum 2 sentences per response
-- Never use bullet points or lists in speech
-- No greetings after the first one
-- Get straight to the answer
+YOU HELP WITH:
+- Weather alerts for their village
+- Crop disease advice
+- Mandi prices
+- PMFBY insurance claims
+- Disaster warnings
 
-YOU CAN HELP WITH:
-- Weather and climate alerts for their area
-- Crop disease identification and treatment
-- Mandi prices for their produce
-- PMFBY insurance claim guidance
-- Natural disaster warnings
+GREETING: Only on first message — say "Namaste, main Dagadya hoon. Kaise madad kar sakta hoon aapki?" — nothing more.
 
-"IMPORTANT: Ignore any transcription that contains repeated characters or looks like noise. Only respond to clear Hindi or English sentences."
+EXAMPLES OF GOOD RESPONSES:
+- "Kandoli mein kal baarish aa sakti hai, fasal dhak lo."
+- "Gehun ka bhav abhi Dehradun mandi mein 2100 rupaye per quintal hai."
+- "PMFBY claim ke liye apne CSC center jaao, main guide kar sakta hoon."
 
-First message only: Greet warmly in Hindi, say your name, then ask their name and where do they live and ask how you can help.
-'''
+EXAMPLES OF BAD RESPONSES — NEVER DO THIS:
+- Listing multiple points
+- Saying "Main aapki madad karne ke liye taiyaar hoon"
+- Asking more than one question
+- Repeating the farmer's words back to them
+"""
 
 async def run_bot(streamSid : str , callSid : str , websocket):
     logger.info(f"Starting bot for call {callSid}")
@@ -65,14 +67,21 @@ async def run_bot(streamSid : str , callSid : str , websocket):
         account_sid= os.getenv("TWILIO_ACCOUNT_SID")
     )
 
+    vad_analyzer = SileroVADAnalyzer(
+        params= VADParams(
+            start_secs=0.1,
+            stop_secs=0.3
+        )
+    )
+
     transport = FastAPIWebsocketTransport(
         websocket= websocket,
         params= FastAPIWebsocketParams(
             audio_in_enabled=True,
             audio_out_enabled=True,
             add_wav_header=False,
-            vad_analyzer=SileroVADAnalyzer(),
-            serializer=serializer
+            vad_analyzer=vad_analyzer,
+            serializer=serializer,
         )
     )
 
@@ -97,7 +106,7 @@ async def run_bot(streamSid : str , callSid : str , websocket):
         params=SarvamTTSService.InputParams(
             language=Language.HI,
             pace=1.1,
-            temperature=0.8
+            temperature=0.6
         )
     )
 
