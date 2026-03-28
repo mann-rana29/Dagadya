@@ -55,9 +55,9 @@ async def playback():
 @app.get("/audio")
 async def audio():
     """Serve the recording audio file"""
-    audio_path = "recordings/demo.mpeg"
+    audio_path = "recordings/audio.mpeg"
     if not os.path.exists(audio_path):
-        return {"error": "Recording not found. Place your audio.mpeg file at recordings/demo.mpeg"}, 404
+        return {"error": "Recording not found. Place your audio.mpeg file at recordings/audio.mpeg"}, 404
     return FileResponse(
         audio_path, 
         media_type="audio/mpeg",
