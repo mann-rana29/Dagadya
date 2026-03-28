@@ -107,8 +107,8 @@ def format_soil_for_gemini(soil: dict, crop: str) -> str:
     return f"Crop: {crop}\n" + " | ".join(advice)
 
 if __name__ == "__main__":
-    lat = 30.3165
-    lon = 78.0322
+    lat = 32.3165
+    lon = 77.0322
 
     print("Fetching Soil Data...\n")
 
