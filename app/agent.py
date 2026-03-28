@@ -19,8 +19,11 @@ from pipecat.transports.daily.transport import DailyParams
 
 from pipecat.services.google.llm import GoogleLLMService
 from pipecat.serializers.twilio import TwilioFrameSerializer
+from pipecat.transports.network.websocket_server import WebsocketServerTransport
 
 load_dotenv(override=True)
+
+
 
 async def bot(runner_args: RunnerArguments):
     """Main bot entry point."""
@@ -36,16 +39,29 @@ async def bot(runner_args: RunnerArguments):
         },
     )
 
+
+
+
     # Initialize AI services
     stt = SarvamSTTService(api_key=os.getenv("SARVAM_API_KEY"))
     tts = SarvamTTSService(api_key=os.getenv("SARVAM_API_KEY"))
-    llm = GoogleLLMService(api_key=os.getenv("GEMINI_API_KEY"), model="gemini-flash-2.0")
+    llm = GoogleLLMService(api_key=os.getenv("GEMINI_API_KEY"), model="gemini-2.0-flash")
 
     # Set up conversation context
     messages = [
         {
             "role": "system",
-            "content": "You are a friendly AI assistant. Keep your responses brief and conversational.",
+            "content": '''Aap Dagadya hain — Uttarakhand ke kisanon ke liye ek AI sahayak.
+        Aap Hindi aur English dono mein baat kar sakte hain.
+        
+        Aap yeh kar sakte hain:
+        - Mausam ki jaankari dena (Open-Meteo API se)
+        - Mandi prices batana (Agmarknet se)
+        - PMFBY insurance claim mein madad karna
+        - Fasal ki beemari ke baare mein salah dena
+        
+        Hamesha chhote aur simple jawab do.
+        Farmer ki baat dhyan se suno.''',
         },
     ]
     context = LLMContext(messages)
