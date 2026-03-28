@@ -1,5 +1,5 @@
 from fastapi import FastAPI, WebSocket
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 import json
 from bot import run_bot
 from twilio.rest import Client
@@ -37,6 +37,15 @@ async def root_post():
 @app.get("/ui")
 async def ui():
     return FileResponse("index.html")
+
+@app.get("/playback")
+async def playback():
+    return FileResponse("playback.html")
+
+@app.get("/audio")
+async def audio():
+    """Serve the recording audio file"""
+    return FileResponse("recordings/demo.mpeg", media_type="audio/mpeg")
 
 @app.websocket("/ws")
 async def websocket(websocket : WebSocket):

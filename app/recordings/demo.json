@@ -1,0 +1,8 @@
+{
+  "recording_id": "demo",
+  "call_sid": "call_demo_001",
+  "title": "demo call",
+  "duration": 120,
+  "timestamp": "2026-03-29T10:30:00",
+  "audioUrl": "/api/recording/demo/audio"
+}

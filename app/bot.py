@@ -51,7 +51,7 @@ YOU CAN HELP WITH:
 
 2. MANDI/MARKET QUERIES: "Wheat price?" "Ganne ka bhav?" "What's mandi rate?"
    - You have access to live mandi prices
-   - Share current prices: "Wheat in Haridwar is ₹2100/quintal"
+   - Share current prices
    - Give market advice based on prices
 
 3. INSURANCE QUERIES: "Claim insurance" "Crop damaged" "PMFBY process?"
@@ -72,7 +72,7 @@ IMPORTANT:
 - Ignore repeated characters or noise - only respond to clear sentences
 - Always stay in the farmer's chosen language
 
-First message only: Greet warmly in Hindi, say your name is Dagadya, then ask their name, where they live, and how you can help.
+First message should include : Greet warmly in Hindi, say your name is Dagadya, then ask their name, where they live, and how you can help.
 '''
 
 async def run_bot(streamSid : str , callSid : str , websocket):
