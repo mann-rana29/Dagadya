@@ -90,7 +90,7 @@ async def run_bot(streamSid : str , callSid : str , websocket):
     
     tts = SarvamTTSService(
         api_key=os.getenv("SARVAM_API_KEY"),
-        voice_id="ritu",
+        voice_id="priya",
         model="bulbul:v3",
         params=SarvamTTSService.InputParams(
             language=Language.HI,
