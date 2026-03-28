@@ -85,19 +85,19 @@ def format_soil_for_gemini(soil: dict, crop: str) -> str:
 
     # pH
     if ph < 5.5:
-        advice.append("Mitti acidic hai — chuna daalen")
+        advice.append("Mitti Acidic (एसिडिक) hai — chuna daalen")
     elif ph > 8:
-        advice.append("Mitti alkaline hai — gypsum daalen")
+        advice.append("Mitti alkaline hai — gypsum(जिप्सम) daalen")
     else:
-        advice.append("Mitti ka pH theek hai")
+        advice.append("Mitti utpad ke liye theek hai")
 
     # Nitrogen
     if nitrogen < 50:
-        advice.append("Nitrogen kam hai — urea daalen")
+        advice.append("Nitrogen ki matra kam hai — urea daalen")
     elif nitrogen < 100:
-        advice.append("Nitrogen madhyam hai — thodi khad den")
+        advice.append("Nitrogen ki matra madhyam hai — thodi khad daalen")
     else:
-        advice.append("Nitrogen achha hai")
+        advice.append("Nitrogen shi matra mai uplabhd hai")
 
     # Organic Carbon
     if organic < 5:
