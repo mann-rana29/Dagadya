@@ -14,7 +14,7 @@ from pipecat.pipeline.task import PipelineParams, PipelineTask
 from pipecat.processors.aggregators.llm_context import LLMContext
 from pipecat.processors.aggregators.llm_response_universal import LLMContextAggregatorPair
 
-from pipecat.transports.network.fastapi_websocket import FastAPIWebsocketParams, FastAPIWebsocketTransport
+from pipecat.transports.websocket.fastapi import FastAPIWebsocketParams, FastAPIWebsocketTransport
 
 from dotenv import load_dotenv
 from loguru import logger
@@ -62,10 +62,12 @@ async def run_bot(streamSid : str , callSid : str , websocket):
     )
 
     stt = SarvamSTTService(
-        api_key=os.getenv("SARVAM_API_KEY"),
+    api_key=os.getenv("SARVAM_API_KEY"),
+    settings=SarvamSTTService.Settings(
         model="saarika:v2.5",
         language="hi-IN"
     )
+)
 
     llm = GoogleLLMService(
         api_key=os.getenv("GEMINI_API_KEY"),
@@ -76,10 +78,9 @@ async def run_bot(streamSid : str , callSid : str , websocket):
         api_key=os.getenv("SARVAM_API_KEY"),
         settings=SarvamTTSService.Settings(
             model="bulbul:v3",
-            speaker="anushka",
             target_language_code="hi-IN"
         )
-        
+        ,voice_id="anushka"
     )
 
     messages=[
