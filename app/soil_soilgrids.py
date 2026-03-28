@@ -4,7 +4,6 @@ import requests
 def get_soil_data(lat: float, lon: float) -> dict:
     """
     Fetch soil data from SoilGrids API
-    No API key required
     """
 
     url = "https://rest.isric.org/soilgrids/v2.0/properties/query"
@@ -85,31 +84,31 @@ def format_soil_for_gemini(soil: dict, crop: str) -> str:
 
     # pH
     if ph < 5.5:
-        advice.append("Mitti acidic hai — chuna daalen")
+        advice.append("Mitti Acidic (एसिडिक) hai — chuna daalen")
     elif ph > 8:
-        advice.append("Mitti alkaline hai — gypsum daalen")
+        advice.append("Mitti alkaline hai — gypsum(जिप्सम) daalen")
     else:
-        advice.append("Mitti ka pH theek hai")
+        advice.append("Mitti utpad ke liye theek hai")
 
     # Nitrogen
     if nitrogen < 50:
-        advice.append("Nitrogen kam hai — urea daalen")
+        advice.append("Nitrogen ki matra kam hai — urea daalen")
     elif nitrogen < 100:
-        advice.append("Nitrogen madhyam hai — thodi khad den")
+        advice.append("Nitrogen ki matra madhyam hai — thodi khad daalen")
     else:
-        advice.append("Nitrogen achha hai")
+        advice.append("Nitrogen shi matra mai uplabhd hai")
 
     # Organic Carbon
     if organic < 5:
-        advice.append("Organic carbon kam hai — compost daalen")
+        advice.append("Organic carbon kam hai — खाद daalen")
     else:
-        advice.append("Mitti healthy hai")
+        advice.append("Mitti utpad ke liye theek hai")
 
     return f"Crop: {crop}\n" + " | ".join(advice)
 
 if __name__ == "__main__":
-    lat = 30.3165
-    lon = 78.0322
+    lat = 32.3165
+    lon = 77.0322
 
     print("Fetching Soil Data...\n")
 
