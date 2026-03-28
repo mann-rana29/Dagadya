@@ -492,7 +492,9 @@
             });
 
             wavesurfer.on('error', (msg) => {
-                statusText.textContent = `Error loading audio: ${msg}`;
+                console.error('WaveSurfer error event:', msg);
+                statusText.textContent = `Audio format not supported or file error. Check browser console.`;
+                statusText.parentElement.querySelector('.status-indicator').classList.remove('loading');
             });
         }
 
@@ -523,14 +525,27 @@
 
         async function loadRecording() {
             try {
+                statusText.textContent = 'Checking for audio file...';
+                
+                // First check if file exists
+                const checkResponse = await fetch('/audio', { method: 'HEAD' });
+                if (checkResponse.status === 404) {
+                    statusText.textContent = 'Audio file not found at recordings/demo.mpeg. Please upload your audio file.';
+                    recordingTitle.textContent = 'No Recording Found';
+                    return;
+                }
+                
                 // Load audio directly from /audio endpoint
                 audioUrl = '/audio';
                 recordingTitle.textContent = 'demo call';
+                statusText.textContent = 'Loading audio...';
 
                 // Load audio into wavesurfer
+                console.log('Loading audio from:', audioUrl);
                 await wavesurfer.load(audioUrl);
             } catch (error) {
-                statusText.textContent = `Error: ${error.message}`;
+                console.error('Load recording error:', error);
+                statusText.textContent = `Error: ${error.message || 'Failed to load audio'}`;
                 recordingTitle.textContent = 'Error Loading Recording';
             }
         }

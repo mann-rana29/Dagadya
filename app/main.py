@@ -1,5 +1,6 @@
 from fastapi import FastAPI, WebSocket
 from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.middleware.cors import CORSMiddleware
 import json
 from bot import run_bot
 from twilio.rest import Client
@@ -10,6 +11,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = FastAPI()
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class CallRequest(BaseModel):
     phone_number : str
@@ -48,7 +58,14 @@ async def audio():
     audio_path = "recordings/demo.mpeg"
     if not os.path.exists(audio_path):
         return {"error": "Recording not found. Place your audio.mpeg file at recordings/demo.mpeg"}, 404
-    return FileResponse(audio_path, media_type="audio/mpeg")
+    return FileResponse(
+        audio_path, 
+        media_type="audio/mpeg",
+        headers={
+            "Accept-Ranges": "bytes",
+            "Cache-Control": "public, max-age=3600"
+        }
+    )
 
 @app.websocket("/ws")
 async def websocket(websocket : WebSocket):
