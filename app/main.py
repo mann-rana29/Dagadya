@@ -63,7 +63,9 @@ async def audio():
         media_type="audio/mpeg",
         headers={
             "Accept-Ranges": "bytes",
-            "Cache-Control": "public, max-age=3600"
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
         }
     )
 
