@@ -45,7 +45,10 @@ async def playback():
 @app.get("/audio")
 async def audio():
     """Serve the recording audio file"""
-    return FileResponse("recordings/demo.mpeg", media_type="audio/mpeg")
+    audio_path = "recordings/demo.mpeg"
+    if not os.path.exists(audio_path):
+        return {"error": "Recording not found. Place your audio.mpeg file at recordings/demo.mpeg"}, 404
+    return FileResponse(audio_path, media_type="audio/mpeg")
 
 @app.websocket("/ws")
 async def websocket(websocket : WebSocket):
