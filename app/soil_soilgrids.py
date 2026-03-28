@@ -106,3 +106,18 @@ def format_soil_for_gemini(soil: dict, crop: str) -> str:
         advice.append("Mitti healthy hai")
 
     return f"Crop: {crop}\n" + " | ".join(advice)
+
+if __name__ == "__main__":
+    lat = 30.3165
+    lon = 78.0322
+
+    print("Fetching Soil Data...\n")
+
+    soil = get_soil_data(lat, lon)
+
+    print("Soil Data:")
+    for k, v in soil.items():
+        print(f"{k}: {v}")
+
+    print("\nAdvice:\n")
+    print(format_soil_for_gemini(soil, "wheat"))
