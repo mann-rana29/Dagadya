@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dagadya</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-green-950 text-white min-h-screen flex flex-col items-center justify-center p-8">
+    <h1 class="text-4xl font-bold mb-2">Dagadya</h1>
+    <!-- <p class="text-green-300 mb-8">Uttarakhand ke kisanon ka AI saathi</p> -->
+
+    <div class="bg-green-900 rounded-xl p-6 w-full max-w-lg mb-6">
+        <h2 class="text-lg font-semibold mb-4">Live Transcript</h2>
+        <div id="transcript" class="h-48 overflow-y-auto text-sm space-y-2">
+            <p class="text-green-400">Waiting for call...</p>
+        </div>
+    </div>
+
+    <div class="flex gap-3 w-full max-w-lg">
+        <input
+            id="phone"
+            type="tel"
+            placeholder="+91XXXXXXXXXX"
+            class="flex-1 bg-green-900 rounded-lg px-4 py-3 outline-none"
+        />
+        <button
+            onclick="callMe()"
+            class="bg-green-500 hover:bg-green-400 px-6 py-3 rounded-lg font-semibold"
+        >
+            Call Me
+        </button>
+    </div>
+
+    <script>
+        async function callMe() {
+            const phone = document.getElementById("phone").value;
+            const res = await fetch("/call", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ phone_number: phone })
+            });
+            const data = await res.json();
+            if (data.status === "calling") {
+                document.getElementById("transcript").innerHTML =
+                    "<p class='text-green-400'>Calling your number...</p>";
+            }
+        }
+    </script>
+</body>
+</html>
