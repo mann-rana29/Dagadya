@@ -100,7 +100,7 @@ async def run_bot(streamSid : str , callSid : str , websocket):
         context_aggregator.assistant()
     ])
 
-    task = PipelineRunner(
+    task = PipelineTask(
         pipeline,
         PipelineParams(allow_interruptions=True)
     )
