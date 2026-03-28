@@ -2,7 +2,6 @@ import os
 from pipecat.serializers.twilio import TwilioFrameSerializer
 from pipecat.audio.vad.silero import SileroVADAnalyzer
 from pipecat.frames.frames import LLMRunFrame, TextFrame
-from pipecat.processors.frame_processor import FrameProcessor
 
 from pipecat.transcriptions.language import Language
 
@@ -45,61 +44,36 @@ RESPONSE RULES:
 - Get straight to the answer
 
 YOU CAN HELP WITH:
-- Weather and climate alerts for their area
-- Crop disease identification and treatment
-- Mandi prices for their produce
-- PMFBY insurance claim guidance
-- Natural disaster warnings
+1. WEATHER QUERIES: "Will it rain?" "Tomorrow's weather?" "Barish hoga?"
+   - You have access to real-time weather forecasts
+   - Provide alerts about rainfall, temperature, and farming implications
+   - Give practical advice: "Heavy rain expected - ensure drainage" etc.
 
-AGENT INFORMATION:
-- You have access to real-time weather data for weather queries
-- You have access to mandi prices for crop market queries
-- You have insurance guidance for PMFBY and crop insurance queries
-- When you receive [AGENT RESPONSE] messages, incorporate that data into your response naturally
+2. MANDI/MARKET QUERIES: "Wheat price?" "Ganne ka bhav?" "What's mandi rate?"
+   - You have access to live mandi prices
+   - Share current prices: "Wheat in Haridwar is ₹2100/quintal"
+   - Give market advice based on prices
 
-"IMPORTANT: Ignore any transcription that contains repeated characters or looks like noise. Only respond to clear Hindi or English sentences."
+3. INSURANCE QUERIES: "Claim insurance" "Crop damaged" "PMFBY process?"
+   - You can provide guidance on PMFBY claims
+   - Help with claim processes and documentation
+   - Explain eligibility and benefits
 
-First message only: Greet warmly in Hindi, say your name, then ask their name and where do they live and ask how you can help.
+4. GENERAL FARMING: "How to improve soil?" "Best crops?" "Pest control?"
+   - Share practical agricultural advice
+   - Provide crop rotation tips
+   - Suggest farming techniques for Uttarakhand
+
+IMPORTANT:
+- If farmer mentions rain, weather, or climate → Provide weather-specific advice
+- If farmer mentions prices, selling, or mandi → Provide market-specific advice  
+- If farmer mentions damage, loss, or insurance → Provide insurance guidance
+- If farmer mentions crop diseases or techniques → Provide general farming advice
+- Ignore repeated characters or noise - only respond to clear sentences
+- Always stay in the farmer's chosen language
+
+First message only: Greet warmly in Hindi, say your name is Dagadya, then ask their name, where they live, and how you can help.
 '''
-
-
-class AgentRouterProcessor(FrameProcessor):
-    """
-    Custom frame processor that routes user queries through the agent router
-    and formats responses back to the pipeline
-    """
-    
-    def __init__(self):
-        super().__init__()
-    
-    async def process_frame(self, frame):
-        """Process incoming frames and route queries"""
-        try:
-            # Handle text frames (transcribed user messages)
-            if isinstance(frame, TextFrame):
-                user_text = frame.text
-                logger.info(f"User query: {user_text}")
-                
-                if not user_text or len(user_text.strip()) < 2:
-                    await self.push_frame(frame)
-                    return
-                
-                # Route the query through agent router
-                result = route_query(user_text)
-                message = result.get("message", "")
-                
-                logger.info(f"Router response: {message}")
-                
-                # Push the routed response as a system message for LLM context
-                system_msg = TextFrame(f"[AGENT RESPONSE] {message}")
-                await self.push_frame(system_msg)
-        
-        except Exception as e:
-            logger.error(f"Error in AgentRouterProcessor: {e}")
-        
-        # Always push the frame down the pipeline
-        await self.push_frame(frame)
-
 
 async def run_bot(streamSid : str , callSid : str , websocket):
     logger.info(f"Starting bot for call {callSid}")
@@ -156,13 +130,9 @@ async def run_bot(streamSid : str , callSid : str , websocket):
     context = LLMContext(messages=messages)
     context_aggregator = LLMContextAggregatorPair(context)
 
-    # Initialize agent router processor
-    agent_router = AgentRouterProcessor()
-
     pipeline = Pipeline([
         transport.input(),
         stt,
-        agent_router,
         context_aggregator.user(),
         llm,
         tts,
