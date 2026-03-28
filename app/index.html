@@ -2,47 +2,398 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dagadya</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dagadya | Smart Call Assistant</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=swap");
+
+        :root {
+            --bg-1: #071a12;
+            --bg-2: #0f2e1f;
+            --panel: rgba(9, 31, 21, 0.74);
+            --panel-border: rgba(191, 255, 220, 0.2);
+            --text-main: #f4fff8;
+            --text-soft: #b2dbc1;
+            --accent: #4ef08a;
+            --accent-2: #8cffaf;
+            --danger: #ff8f8f;
+            --ring: rgba(102, 255, 171, 0.45);
+            --shadow: 0 18px 60px rgba(4, 17, 11, 0.55);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Sora", sans-serif;
+            color: var(--text-main);
+            background:
+                radial-gradient(circle at 16% 20%, rgba(78, 240, 138, 0.22), transparent 30%),
+                radial-gradient(circle at 85% 82%, rgba(140, 255, 175, 0.12), transparent 28%),
+                linear-gradient(145deg, var(--bg-1), var(--bg-2));
+            display: grid;
+            place-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image: linear-gradient(transparent 96%, rgba(255, 255, 255, 0.03) 100%);
+            background-size: 100% 30px;
+            pointer-events: none;
+        }
+
+        .app {
+            width: min(760px, 100%);
+            border: 1px solid var(--panel-border);
+            border-radius: 26px;
+            background: var(--panel);
+            backdrop-filter: blur(14px);
+            box-shadow: var(--shadow);
+            padding: clamp(20px, 4vw, 38px);
+            position: relative;
+            isolation: isolate;
+        }
+
+        .app::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 26px;
+            padding: 1px;
+            background: linear-gradient(140deg, rgba(140, 255, 175, 0.42), rgba(78, 240, 138, 0.12), transparent);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .title {
+            margin: 0;
+            font-family: "Space Grotesk", sans-serif;
+            letter-spacing: 0.5px;
+            font-size: clamp(2rem, 4vw, 2.9rem);
+            line-height: 1.1;
+        }
+
+        .subtitle {
+            margin: 10px 0 22px;
+            color: var(--text-soft);
+            font-size: clamp(0.95rem, 1.6vw, 1.05rem);
+        }
+
+        .call-stage {
+            border-radius: 18px;
+            background: rgba(9, 34, 23, 0.75);
+            border: 1px solid rgba(141, 255, 179, 0.25);
+            min-height: 280px;
+            padding: 26px 18px;
+            display: grid;
+            place-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .orb {
+            width: clamp(92px, 18vw, 126px);
+            aspect-ratio: 1;
+            border-radius: 50%;
+            background: radial-gradient(circle at 28% 28%, #ecfff4, var(--accent) 40%, #22a55d 100%);
+            box-shadow: 0 0 40px rgba(78, 240, 138, 0.45);
+            position: relative;
+        }
+
+        .ring {
+            position: absolute;
+            inset: -12px;
+            border: 2px solid transparent;
+            border-radius: 50%;
+            opacity: 0;
+        }
+
+        .ring.r1 { border-color: var(--ring); }
+        .ring.r2 { border-color: rgba(150, 255, 197, 0.35); }
+
+        .waves {
+            position: absolute;
+            bottom: 34px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            height: 64px;
+            align-items: end;
+        }
+
+        .waves span {
+            width: 8px;
+            height: 12px;
+            border-radius: 999px;
+            background: linear-gradient(180deg, #dcffea, #5ef194);
+            opacity: 0.45;
+            transform-origin: bottom;
+        }
+
+        .status {
+            margin-top: 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-soft);
+            font-size: 0.95rem;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(11, 40, 27, 0.8);
+            border: 1px solid rgba(163, 255, 199, 0.24);
+        }
+
+        .dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #87c8a1;
+        }
+
+        .controls {
+            margin-top: 22px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+        }
+
+        .input {
+            width: 100%;
+            border-radius: 14px;
+            border: 1px solid rgba(163, 255, 199, 0.25);
+            background: rgba(7, 26, 18, 0.92);
+            color: var(--text-main);
+            padding: 15px 16px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(78, 240, 138, 0.12);
+        }
+
+        .btn {
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(120deg, #52f28e, #35ca70);
+            color: #032311;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            font-family: "Space Grotesk", sans-serif;
+            padding: 0 22px;
+            cursor: pointer;
+            transition: transform 0.15s ease, filter 0.2s ease;
+        }
+
+        .btn:hover {
+            filter: brightness(1.04);
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            cursor: wait;
+            opacity: 0.74;
+            transform: none;
+        }
+
+        .hint {
+            margin-top: 10px;
+            color: rgba(201, 240, 218, 0.78);
+            font-size: 0.87rem;
+        }
+
+        .app.is-calling .dot {
+            background: var(--accent-2);
+            box-shadow: 0 0 0 0 rgba(140, 255, 175, 0.8);
+            animation: ping 1.45s infinite;
+        }
+
+        .app.is-calling .ring.r1 {
+            animation: ripple 1.8s infinite;
+        }
+
+        .app.is-calling .ring.r2 {
+            animation: ripple 1.8s infinite 0.45s;
+        }
+
+        .app.is-calling .waves span {
+            opacity: 1;
+            animation: wave 0.9s infinite ease-in-out;
+        }
+
+        .app.is-calling .waves span:nth-child(2) { animation-delay: 0.08s; }
+        .app.is-calling .waves span:nth-child(3) { animation-delay: 0.16s; }
+        .app.is-calling .waves span:nth-child(4) { animation-delay: 0.24s; }
+        .app.is-calling .waves span:nth-child(5) { animation-delay: 0.32s; }
+        .app.is-calling .waves span:nth-child(6) { animation-delay: 0.4s; }
+        .app.is-calling .waves span:nth-child(7) { animation-delay: 0.48s; }
+
+        @keyframes ripple {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.7); opacity: 0; }
+        }
+
+        @keyframes ping {
+            0% { box-shadow: 0 0 0 0 rgba(140, 255, 175, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(140, 255, 175, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(140, 255, 175, 0); }
+        }
+
+        @keyframes wave {
+            0%, 100% { height: 14px; }
+            50% { height: 62px; }
+        }
+
+        @media (max-width: 640px) {
+            .controls {
+                grid-template-columns: 1fr;
+            }
+
+            .btn {
+                height: 48px;
+            }
+
+            .call-stage {
+                min-height: 250px;
+                padding: 20px 12px;
+            }
+        }
+    </style>
 </head>
-<body class="bg-green-950 text-white min-h-screen flex flex-col items-center justify-center p-8">
-    <h1 class="text-4xl font-bold mb-2">Dagadya</h1>
-    <!-- <p class="text-green-300 mb-8">Uttarakhand ke kisanon ka AI saathi</p> -->
+<body>
+    <main class="app" id="app">
+        <h1 class="title">Dagadya Call Connect</h1>
+        <p class="subtitle">Fast, voice-first help for farmers. Enter your number and start a live assistant call.</p>
 
-    <div class="bg-green-900 rounded-xl p-6 w-full max-w-lg mb-6">
-        <h2 class="text-lg font-semibold mb-4">Live Transcript</h2>
-        <div id="transcript" class="h-48 overflow-y-auto text-sm space-y-2">
-            <p class="text-green-400">Waiting for call...</p>
+        <section class="call-stage" aria-live="polite">
+            <div class="orb" aria-hidden="true">
+                <span class="ring r1"></span>
+                <span class="ring r2"></span>
+            </div>
+
+            <div class="waves" aria-hidden="true">
+                <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+        </section>
+
+        <p class="status" id="statusText">
+            <span class="dot" aria-hidden="true"></span>
+            <span id="statusMessage">Ready to place your call</span>
+        </p>
+
+        <div class="controls">
+            <input
+                id="phone"
+                class="input"
+                type="tel"
+                placeholder="+91XXXXXXXXXX"
+                autocomplete="tel"
+            />
+            <button id="callBtn" class="btn" type="button" onclick="callMe()">Call Me</button>
         </div>
-    </div>
 
-    <div class="flex gap-3 w-full max-w-lg">
-        <input
-            id="phone"
-            type="tel"
-            placeholder="+91XXXXXXXXXX"
-            class="flex-1 bg-green-900 rounded-lg px-4 py-3 outline-none"
-        />
-        <button
-            onclick="callMe()"
-            class="bg-green-500 hover:bg-green-400 px-6 py-3 rounded-lg font-semibold"
-        >
-            Call Me
-        </button>
-    </div>
+        <p class="hint">No transcript shown. This screen is focused only on call status and live activity visuals.</p>
+    </main>
 
     <script>
+        const app = document.getElementById("app");
+        const statusMessage = document.getElementById("statusMessage");
+        const callBtn = document.getElementById("callBtn");
+        let beepLoop = null;
+        let audioCtx = null;
+
+        function playBeep() {
+            try {
+                if (!audioCtx) {
+                    const Ctx = window.AudioContext || window.webkitAudioContext;
+                    if (!Ctx) {
+                        return;
+                    }
+                    audioCtx = new Ctx();
+                }
+
+                const oscillator = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                oscillator.type = "triangle";
+                oscillator.frequency.value = 860;
+
+                gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.09, audioCtx.currentTime + 0.03);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.17);
+
+                oscillator.connect(gain);
+                gain.connect(audioCtx.destination);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.18);
+            } catch (_) {
+                // Audio is optional for the UI; ignore any browser restrictions.
+            }
+        }
+
+        function setCallVisualState(isCalling, message) {
+            app.classList.toggle("is-calling", isCalling);
+            statusMessage.textContent = message;
+
+            if (isCalling) {
+                if (!beepLoop) {
+                    playBeep();
+                    beepLoop = setInterval(playBeep, 2200);
+                }
+            } else if (beepLoop) {
+                clearInterval(beepLoop);
+                beepLoop = null;
+            }
+        }
+
+        function isValidPhone(input) {
+            return /^\+?\d{10,15}$/.test(input.trim());
+        }
+
         async function callMe() {
-            const phone = document.getElementById("phone").value;
-            const res = await fetch("/call", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ phone_number: phone })
-            });
-            const data = await res.json();
-            if (data.status === "calling") {
-                document.getElementById("transcript").innerHTML =
-                    "<p class='text-green-400'>Calling your number...</p>";
+            const phoneField = document.getElementById("phone");
+            const phone = phoneField.value.trim();
+
+            if (!isValidPhone(phone)) {
+                setCallVisualState(false, "Enter a valid phone number (10 to 15 digits)");
+                return;
+            }
+
+            callBtn.disabled = true;
+            callBtn.textContent = "Dialing...";
+            setCallVisualState(true, "Placing your call...");
+
+            try {
+                const res = await fetch("/call", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ phone_number: phone })
+                });
+
+                const data = await res.json();
+                if (data.status === "calling") {
+                    setCallVisualState(true, "Calling your number now");
+                } else {
+                    setCallVisualState(false, "Could not place call right now. Try again.");
+                }
+            } catch (_) {
+                setCallVisualState(false, "Network issue while placing call. Please retry.");
+            } finally {
+                callBtn.disabled = false;
+                callBtn.textContent = "Call Me";
             }
         }
     </script>
