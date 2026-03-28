@@ -142,3 +142,4 @@ async def run_bot(streamSid : str , callSid : str , websocket):
 
 
     runner = PipelineRunner(handle_sigint=False)
+    await runner.run(task)
