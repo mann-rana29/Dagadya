@@ -140,6 +140,42 @@
             justify-content: center;
         }
 
+        /* Waving bars animation */
+        .wave-bars {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 3px;
+            height: 100%;
+            width: 100%;
+            padding: 0 10px;
+        }
+
+        .wave-bar {
+            width: 3px;
+            background: linear-gradient(180deg, #52f28e, #35ca70);
+            border-radius: 2px;
+            animation: wave 0.8s ease-in-out infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { height: 20%; }
+            50% { height: 80%; }
+        }
+
+        .wave-bar:nth-child(1) { animation-delay: 0s; }
+        .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+        .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+        .wave-bar:nth-child(6) { animation-delay: 0.5s; }
+        .wave-bar:nth-child(7) { animation-delay: 0.6s; }
+        .wave-bar:nth-child(8) { animation-delay: 0.7s; }
+        .wave-bar:nth-child(9) { animation-delay: 0.8s; }
+        .wave-bar:nth-child(10) { animation-delay: 0.9s; }
+        .wave-bar:nth-child(11) { animation-delay: 1s; }
+        .wave-bar:nth-child(12) { animation-delay: 1.1s; }
+
         .wave-loading {
             display: flex;
             align-items: center;
@@ -387,11 +423,19 @@
             </div>
 
             <div id="waveform" class="wave-container">
-                <div class="wave-loading">
-                    <div class="loading-dot"></div>
-                    <div class="loading-dot"></div>
-                    <div class="loading-dot"></div>
-                    <span>Loading waveform...</span>
+                <div class="wave-bars">
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
                 </div>
             </div>
 
@@ -412,10 +456,6 @@
                 <span class="status-indicator loading"></span>
                 <span id="statusText">Preparing audio playback...</span>
             </div>
-
-            <button class="download-btn" id="downloadBtn" style="display: none;">
-                ⬇ Download Recording
-            </button>
         </section>
     </main>
 
@@ -432,7 +472,6 @@
         const statusText = document.getElementById('statusText');
         const recordingTitle = document.getElementById('recordingTitle');
         const recordingDuration = document.getElementById('recordingDuration');
-        const downloadBtn = document.getElementById('downloadBtn');
         const waveformContainer = document.getElementById('waveform');
 
         function formatTime(seconds) {
@@ -458,7 +497,6 @@
             wavesurfer.on('ready', () => {
                 statusText.textContent = 'Ready to play - Click the play button to start';
                 statusText.parentElement.querySelector('.status-indicator').classList.remove('loading');
-                downloadBtn.style.display = 'block';
 
                 const duration = wavesurfer.getDuration();
                 totalTimeEl.textContent = formatTime(duration);
@@ -481,8 +519,10 @@
                 const current = wavesurfer.getCurrentTime();
                 currentTimeEl.textContent = formatTime(current);
                 const duration = wavesurfer.getDuration();
-                const percent = (current / duration) * 100;
-                progressFill.style.width = percent + '%';
+                if (duration > 0) {
+                    const percent = (current / duration) * 100;
+                    progressFill.style.width = percent + '%';
+                }
             });
 
             wavesurfer.on('seek', (pos) => {
@@ -512,41 +552,24 @@
             volumeSlider.addEventListener('input', (e) => {
                 wavesurfer.setVolume(e.target.value / 100);
             });
-
-            downloadBtn.addEventListener('click', () => {
-                const link = document.createElement('a');
-                link.href = audioUrl;
-                link.download = `call-recording-${new Date().getTime()}.wav`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            });
         }
 
         async function loadRecording() {
+            recordingTitle.textContent = 'demo call';
+            statusText.textContent = 'Ready to play - Click the play button';
+            
+            // Load audio without blocking UI
             try {
-                statusText.textContent = 'Checking for audio file...';
-                
-                // First check if file exists
-                const checkResponse = await fetch('/audio', { method: 'HEAD' });
-                if (checkResponse.status === 404) {
-                    statusText.textContent = 'Audio file not found at recordings/demo.mpeg. Please upload your audio file.';
-                    recordingTitle.textContent = 'No Recording Found';
-                    return;
-                }
-                
-                // Load audio directly from /audio endpoint
                 audioUrl = '/audio';
-                recordingTitle.textContent = 'demo call';
-                statusText.textContent = 'Loading audio...';
-
-                // Load audio into wavesurfer
                 console.log('Loading audio from:', audioUrl);
-                await wavesurfer.load(audioUrl);
+                wavesurfer.load(audioUrl);
+                
+                // Stop loading spinner after 1.5 seconds
+                setTimeout(() => {
+                    statusText.parentElement.querySelector('.status-indicator').classList.remove('loading');
+                }, 1500);
             } catch (error) {
-                console.error('Load recording error:', error);
-                statusText.textContent = `Error: ${error.message || 'Failed to load audio'}`;
-                recordingTitle.textContent = 'Error Loading Recording';
+                console.error('Error loading audio:', error);
             }
         }
 
