@@ -24,6 +24,15 @@ async def root():
         </Response>
     """, media_type="application/xml")
 
+@app.post("/")
+async def root_post():
+    return HTMLResponse(content="""
+        <Response>
+            <Connect>
+                <Stream url="wss://dagadya-production.up.railway.app/ws"/>
+            </Connect>
+        </Response>
+    """, media_type="application/xml")
 
 @app.get("/ui")
 async def ui():

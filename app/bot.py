@@ -1,6 +1,6 @@
 import os
 from pipecat.serializers.twilio import TwilioFrameSerializer
-from pipecat.transports.network.websocket_server import WebsocketServerTransport , WebsocketServerParams
+from pipecat.transports.websocket.server import WebsocketServerTransport , WebsocketServerParams
 from pipecat.audio.vad.silero import SileroVADAnalyzer
 from pipecat.frames.frames import LLMRunFrame
 
