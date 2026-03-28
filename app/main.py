@@ -1,5 +1,5 @@
 from fastapi import FastAPI, WebSocket
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 import json
 from bot import run_bot
 from twilio.rest import Client
@@ -23,6 +23,11 @@ async def root():
             </Connect>
         </Response>
     """, media_type="application/xml")
+
+
+@app.get("/ui")
+async def ui():
+    return FileResponse("index.html")
 
 @app.websocket("/ws")
 async def websocket(websocket : WebSocket):
