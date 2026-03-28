@@ -65,7 +65,7 @@ async def run_bot(streamSid : str , callSid : str , websocket):
 
     stt = SarvamSTTService(
         api_key=os.getenv("SARVAM_API_KEY"),
-        model="saarika:v2",
+        model="saarika:v2.5",
         language="hi-IN"
     )
 
