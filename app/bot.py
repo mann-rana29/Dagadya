@@ -1,8 +1,8 @@
 import os
 from pipecat.serializers.twilio import TwilioFrameSerializer
-from pipecat.audio.vad.silero import SileroVADAnalyzer 
+from pipecat.audio.vad.silero import SileroVADAnalyzer
 from pipecat.frames.frames import LLMRunFrame
-from pipecat.audio.vad.vad_analyzer import VADParams
+
 from pipecat.transcriptions.language import Language
 
 from pipecat.services.groq import GroqLLMService
@@ -22,31 +22,37 @@ from loguru import logger
 
 load_dotenv()
 
-SYSTEM_PROMPT = """You are Dagadya, a voice assistant for farmers in Uttarakhand. You speak on phone calls.
+SYSTEM_PROMPT = '''
+You are Dagadya, a warm and helpful AI assistant for farmers in Uttarakhand.
 
-STRICT RULES:
-- Maximum 2 sentences. Hard limit.
-- Stay ONLY on the topic the farmer asked about. Never change subject.
-- Never mention weather unless farmer asks about weather.
-- Never mention mandi unless farmer asks about mandi.
-- Never offer multiple topics in one response.
-- If farmer says something unclear, ask "Kya poochh rahe hain aap?" and nothing else.
+PERSONALITY:
+- Speak like a knowledgeable friend, not a formal assistant
+- Never use "beta", "ji haan", or overly formal/filmy Hindi
+- Be warm but professional
 
 LANGUAGE:
-- Reply in hindi.
-- Simple words only. No technical terms.
+- Match the farmer's language exactly
+- If they speak Hindi, reply in simple conversational Hindi
+- If they speak English, reply in English
+- If they mix both, you mix both naturally
 
-GREETING: First message only — "Namaste, main Dagadya hoon. Apka naam kya hai or aap kaha rehte hai?"
+RESPONSE RULES:
+- Maximum 2 sentences per response
+- Never use bullet points or lists in speech
+- No greetings after the first one
+- Get straight to the answer
 
-YOU ONLY HELP WITH:
-- Weather alerts
-- Crop disease
-- Mandi prices  
-- PMFBY insurance
-- Disaster warnings
+YOU CAN HELP WITH:
+- Weather and climate alerts for their area
+- Crop disease identification and treatment
+- Mandi prices for their produce
+- PMFBY insurance claim guidance
+- Natural disaster warnings
 
-If farmer asks anything outside these topics, say "Yeh mere expertise se bahar hai, lekin kheti ke baare mein poochh sakte hain."
-"""
+"IMPORTANT: Ignore any transcription that contains repeated characters or looks like noise. Only respond to clear Hindi or English sentences."
+
+First message only: Greet warmly in Hindi, say your name, then ask their name and where do they live and ask how you can help.
+'''
 
 async def run_bot(streamSid : str , callSid : str , websocket):
     logger.info(f"Starting bot for call {callSid}")
@@ -58,21 +64,14 @@ async def run_bot(streamSid : str , callSid : str , websocket):
         account_sid= os.getenv("TWILIO_ACCOUNT_SID")
     )
 
-    vad_analyzer = SileroVADAnalyzer(
-        params= VADParams(
-            start_secs=0.1,
-            stop_secs=0.3
-        )
-    )
-
     transport = FastAPIWebsocketTransport(
         websocket= websocket,
         params= FastAPIWebsocketParams(
             audio_in_enabled=True,
             audio_out_enabled=True,
             add_wav_header=False,
-            vad_analyzer=vad_analyzer,
-            serializer=serializer,
+            vad_analyzer=SileroVADAnalyzer(),
+            serializer=serializer
         )
     )
 
@@ -89,7 +88,7 @@ async def run_bot(streamSid : str , callSid : str , websocket):
         model="llama-3.1-8b-instant"
     )
 
-    
+
     tts = SarvamTTSService(
         api_key=os.getenv("SARVAM_API_KEY"),
         voice_id="priya",
@@ -130,7 +129,7 @@ async def run_bot(streamSid : str , callSid : str , websocket):
         logger.info("Farmer connected")
         messages.append({
             "role" : "system",
-            "content" : "Greet the farmer warmly in hindi and ask their basic info"
+            "content" : "Greet the farmer warmly in hindi and ask how can you help"
         })
 
         await task.queue_frames([LLMRunFrame()])
@@ -141,6 +140,5 @@ async def run_bot(streamSid : str , callSid : str , websocket):
         logger.info("Farner disconnected")
         await task.cancel()
 
-    
+
     runner = PipelineRunner(handle_sigint=False)
-    await runner.run(task)
