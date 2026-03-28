@@ -12,7 +12,7 @@ load_dotenv()
 app = FastAPI()
 
 class CallRequest(BaseModel):
-    phone_number = str
+    phone_number : str
 
 @app.get("/")
 async def root():
